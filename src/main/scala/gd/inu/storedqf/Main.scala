@@ -5,6 +5,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives.pathEndOrSingleSlash
 import akka.stream.ActorMaterializer
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration.Duration
@@ -23,7 +24,7 @@ object Main {
     implicit val materializer = ActorMaterializer()
     implicit val ec: ExecutionContext = system.dispatcher
 
-    val root = pathEndOrSingleSlash {
+    val root: Route = pathEndOrSingleSlash {
       complete("Up and running")
     }
 

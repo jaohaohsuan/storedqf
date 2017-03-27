@@ -10,8 +10,10 @@ lazy val root = (project in file(".")).settings(
   scalaVersion := "2.11.8",
   exportJars := true,
   libraryDependencies  ++= Seq(
+    nscalaTime,
     akkaHttp,
-    akkaHttpTestkit
+    akkaHttpTestkit,
+    scalatest, scalacheck
   ),
   cpJarsForDocker := {
 

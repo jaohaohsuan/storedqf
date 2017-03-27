@@ -20,6 +20,11 @@ podTemplate(label: 'storedqf', containers: [
                     sh 'sbt compile'
                 }
             }
+            stage('unit test') {
+                container('sbt') {
+                    sh 'sbt test'
+                }
+            }
             stage('stage') {
                 container('sbt') {
                     sh 'sbt cpJarsForDocker'

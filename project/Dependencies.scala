@@ -6,12 +6,14 @@ object Version {
 }
 
 object Library {
-  val akkaActor                = "com.typesafe.akka"           %% "akka-actor"                           % Version.akka
-  val akkaHttp                 = "com.typesafe.akka"           %% "akka-http"                            % Version.akkaHttp
-  val logback                  = "ch.qos.logback"               % "logback-classic"              % "1.1.7"
+  lazy val akkaActor                = "com.typesafe.akka"           %% "akka-actor"                           % Version.akka
+  lazy val akkaHttp                 = "com.typesafe.akka"           %% "akka-http"                            % Version.akkaHttp
+  lazy val logback                  = "ch.qos.logback"               % "logback-classic"              % "1.1.7"
+  lazy val nscalaTime               = "com.github.nscala-time" %% "nscala-time" % "2.16.0"
 
   // testing parts
 
-  val scalatest                = "org.scalatest"               %% "scalatest"                            % "3.0.1"             % "test"
-  val akkaHttpTestkit          = "com.typesafe.akka"           %% "akka-http-testkit"                    % Version.akkaHttp    % "test"
+  lazy val scalatest                = "org.scalatest"               %% "scalatest"                            % "3.0.1"             % "test"
+  lazy val akkaHttpTestkit          = "com.typesafe.akka"           %% "akka-http-testkit"                    % Version.akkaHttp    % "test"
+  val scalacheck                    = "org.scalacheck"              %% "scalacheck"                           % "1.13.4"            % "test"
 }
