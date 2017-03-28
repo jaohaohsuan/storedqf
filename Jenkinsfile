@@ -17,11 +17,9 @@ podTemplate(label: 'storedqf', containers: [
         ansiColor('xterm') {
             checkout scm
             stage('prepare') {
-                dir('/usr/share/elasticsearch') {
-                    container('elasticsearch') {
-                        withEnv(['xpack.security.enabled=false', 'http.host=0.0.0.0', 'transport.host=127.0.0.1']) {
-                            sh "/bin/bash bin/es-docker &"
-                        }
+                container('elasticsearch') {
+                    withEnv(['xpack.security.enabled=false', 'http.host=0.0.0.0', 'transport.host=127.0.0.1']) {
+                        sh "/bin/bash /usr/share/elasticsearch/bin/es-docker &"
                     }
                 }
             }
