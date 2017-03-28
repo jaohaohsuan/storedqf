@@ -3,7 +3,13 @@ podTemplate(label: 'storedqf', containers: [
         containerTemplate(name: 'jnlp', image: 'henryrao/jnlp-slave', args: '${computer.jnlpmac} ${computer.name}', alwaysPullImage: true),
         containerTemplate(name: 'kubectl', image: 'henryrao/kubectl:1.5.2', ttyEnabled: true, command: 'cat'),
         containerTemplate(name: 'sbt', image: 'henryrao/sbt:211', ttyEnabled: true, command: 'cat', alwaysPullImage: true),
-        containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat')
+        containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat'),
+        containerTemplate(name: 'elasticsearch', image: 'docker.elastic.co/elasticsearch/elasticsearch:5', ttyEnabled: true, command: 'es-docker',
+                          envVars: [
+                              containerEnvVar(key: 'xpack.security.enabled', value: 'false'),
+                              containerEnvVar(key: 'http.host', value: '0.0.0.0'),
+                              containerEnvVar(key: 'transport.host', value: '127.0.0.1')
+                          ])
 ],
         volumes: [
                 hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
@@ -45,6 +51,9 @@ podTemplate(label: 'storedqf', containers: [
                     sleep 10
                     sh "docker logs ${containerId}"
                     sh "docker rm -f -v ${containerId}"
+                }
+                container('elasticsearch') {
+                    sh "curl http://127.0.0.1:9200"
                 }
             }
             step([$class: 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
