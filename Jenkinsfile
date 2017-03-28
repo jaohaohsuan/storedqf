@@ -4,14 +4,7 @@ podTemplate(label: 'storedqf', containers: [
         containerTemplate(name: 'kubectl', image: 'henryrao/kubectl:1.5.2', ttyEnabled: true, command: 'cat'),
         containerTemplate(name: 'sbt', image: 'henryrao/sbt:211', ttyEnabled: true, command: 'cat', alwaysPullImage: true),
         containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat'),
-        containerTemplate(name: 'elasticsearch', image: 'docker.elastic.co/elasticsearch/elasticsearch:5', ttyEnabled: true,
-                          args: '/bin/bash bin/es-docker',
-                          workingDir: '/usr/share/elasticsearch',
-                          envVars: [
-                              containerEnvVar(key: 'xpack.security.enabled', value: 'false'),
-                              containerEnvVar(key: 'http.host', value: '0.0.0.0'),
-                              containerEnvVar(key: 'transport.host', value: '127.0.0.1')
-                          ])
+        containerTemplate(name: 'elasticsearch', image: 'docker.elastic.co/elasticsearch/elasticsearch:5', ttyEnabled: true, command: 'cat', workingDir: '/usr/share/elasticsearch')
 ],
         volumes: [
                 hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
@@ -55,7 +48,12 @@ podTemplate(label: 'storedqf', containers: [
                     sh "docker rm -f -v ${containerId}"
                 }
                 container('elasticsearch') {
-                    sh "curl http://127.0.0.1:9200"
+                    withEnv(['xpack.security.enabled=false', 'http.host=0.0.0.0', 'transport.host=127.0.0.1']) {
+                        sh "/bin/bash bin/es-docker &"
+                        sleep 15
+                        sh "curl http://127.0.0.1:9200"
+                    }
+
                 }
             }
             step([$class: 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
