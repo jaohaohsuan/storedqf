@@ -4,7 +4,7 @@ podTemplate(label: 'storedqf', containers: [
         containerTemplate(name: 'kubectl', image: 'henryrao/kubectl:1.5.2', ttyEnabled: true, command: 'cat'),
         containerTemplate(name: 'sbt', image: 'henryrao/sbt:211', ttyEnabled: true, command: 'cat', alwaysPullImage: true),
         containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat'),
-        containerTemplate(name: 'elasticsearch', image: 'docker.elastic.co/elasticsearch/elasticsearch:5.2.2', ttyEnabled: true, command: 'cat', workingDir: '/usr/share/elasticsearch')
+        containerTemplate(name: 'elasticsearch', image: 'docker.elastic.co/elasticsearch/elasticsearch:5.2.2', ttyEnabled: true, command: 'cat')
 ],
         volumes: [
                 hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
@@ -16,6 +16,15 @@ podTemplate(label: 'storedqf', containers: [
     node('storedqf') {
         ansiColor('xterm') {
             checkout scm
+            stage('prepare') {
+                dir('/usr/share/elasticsearch') {
+                    container('elasticsearch') {
+                        withEnv(['xpack.security.enabled=false', 'http.host=0.0.0.0', 'transport.host=127.0.0.1']) {
+                            sh "/bin/bash bin/es-docker &"
+                        }
+                    }
+                }
+            }
             stage('compile') {
                 container('sbt') {
                     sh 'sbt compile'
@@ -42,19 +51,13 @@ podTemplate(label: 'storedqf', containers: [
             }
             stage('test') {
                 container('docker') {
+                    sh "curl http://127.0.0.1:9200"
                     def containerId = sh(returnStdout: true, script: "docker run -d ${imageSha}")
                     sleep 10
                     sh "docker logs ${containerId}"
                     sh "docker rm -f -v ${containerId}"
                 }
-                container('elasticsearch') {
-                    withEnv(['xpack.security.enabled=false', 'http.host=0.0.0.0', 'transport.host=127.0.0.1']) {
-                        sh "/bin/bash bin/es-docker &"
-                        sleep 15
-                        sh "curl http://127.0.0.1:9200"
-                    }
 
-                }
             }
             step([$class: 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
                   projectRulePath: 'jenkins-rule-logparser', useProjectRule: true])
