@@ -19,7 +19,7 @@ podTemplate(label: 'storedqf', containers: [
             stage('prepare') {
                 container('elasticsearch') {
                     withEnv(['xpack.security.enabled=false', 'http.host=0.0.0.0', 'transport.host=127.0.0.1']) {
-                        sh "/bin/bash /usr/share/elasticsearch/bin/es-docker &"
+                        sleep 600
                     }
                 }
             }
