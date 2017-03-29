@@ -53,7 +53,6 @@ podTemplate(label: 'storedqf', containers: [
             }
             stage('test') {
                 container('docker') {
-                    sh "curl http://127.0.0.1:9200"
                     def containerId = sh(returnStdout: true, script: "docker run -d ${imageSha}")
                     sleep 10
                     sh "docker logs ${containerId}"
