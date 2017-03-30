@@ -3,7 +3,12 @@ podTemplate(label: 'storedqf', containers: [
         containerTemplate(name: 'jnlp', image: 'henryrao/jnlp-slave', args: '${computer.jnlpmac} ${computer.name}', alwaysPullImage: true),
         containerTemplate(name: 'kubectl', image: 'henryrao/kubectl:1.5.2', ttyEnabled: true, command: 'cat'),
         containerTemplate(name: 'sbt', image: 'henryrao/sbt:211', ttyEnabled: true, command: 'cat', alwaysPullImage: true),
-        containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat')
+        containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat'),
+        containerTemplate(name: 'elastic', image: 'docker.elastic.co/elasticsearch/elasticsearch:5.2.2', ttyEnabled: true,
+                command: '/usr/share/elasticsearch/bin/elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Expack.security.enabled=false',
+                envVars: [
+                        containerEnvVar(key: 'ES_JAVA_OPTS', value: '-Des.cgroups.hierarchy.override=/')
+                ])
 ],
         volumes: [
                 hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
@@ -15,20 +20,6 @@ podTemplate(label: 'storedqf', containers: [
     node('storedqf') {
         ansiColor('xterm') {
             checkout scm
-            def elasticsearchContainerId
-            stage('prepare') {
-                container('docker') {
-                    elasticsearchContainerId = sh(returnStdout: true, script: 'docker run -d -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:5.2.2').trim()
-                    def ip = sh(returnStdout: true, script: "docker inspect --format='{{.NetworkSettings.IPAddress}}' ${elasticsearchContainerId}").trim()
-
-                    timeout(time: 30, unit: 'SECONDS') {
-                        waitUntil {
-                            def r = sh script: "curl http://${ip}:9200", returnStatus: true
-                            return (r == 0)
-                        }
-                    }
-                }
-            }
             stage('compile') {
                 container('sbt') {
                     sh 'sbt compile'
@@ -57,15 +48,16 @@ podTemplate(label: 'storedqf', containers: [
                     sleep 10
                     sh "docker logs ${containerId}"
                     sh "docker rm -f -v ${containerId}"
-                }
 
-            }
-            stage('tear down') {
-                container('docker') {
-                    sh "docker rm -f -v ${elasticsearchContainerId}"
+                    timeout(time: 30, unit: 'SECONDS') {
+                        waitUntil {
+                            def r = sh script: "curl http://127.0.0.1:9200", returnStatus: true
+                            return (r == 0)
+                        }
+                    }
                 }
             }
-            step([$class: 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
+            step([$class         : 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
                   projectRulePath: 'jenkins-rule-logparser', useProjectRule: true])
         }
 
