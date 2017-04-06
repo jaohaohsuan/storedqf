@@ -1,16 +1,17 @@
 import Library._
 
 
-lazy val cpJarsForDocker = taskKey[Unit]("prepare for building Docker image")
+val cpJarsForDocker = taskKey[Unit]("prepare for building Docker image")
 
 
-lazy val root = (project in file(".")).settings(
+val root = (project in file(".")).settings(
   name := "storedqf",
   version := "1.0",
   scalaVersion := "2.11.8",
   exportJars := true,
   libraryDependencies  ++= Seq(
-    nscalaTime,
+    logback,
+    nscalaTime, json4sJackson,
     akkaHttp,
     akkaHttpTestkit,
     scalatest, scalacheck
