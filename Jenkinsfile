@@ -13,10 +13,9 @@ podTemplate(
             def esContaienr
             try {
                 stage('prepare') {
-                    git(url: 'https://github.com/jaohaohsuan/storedqf.git', branch: 'master')
-                    esContaienr =
-                            docker.image('docker.elastic.co/elasticsearch/elasticsearch:5.3.0')
-                                    .run('-e "xpack.security.enabled=false" -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1"')
+                    checkout scm
+                    esContaienr = docker.image('docker.elastic.co/elasticsearch/elasticsearch:5.3.0')
+                                        .run('-e "xpack.security.enabled=false" -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1"')
                 }
 
                 docker.image('henryrao/sbt:2.11.8').inside("--net=container:${esContaienr.id}") {
@@ -30,7 +29,7 @@ podTemplate(
                             }
                         }, setup: {
                             echo 'POST index tmeplate'
-                        },failFast: true
+                        }, failFast: true
                     }
                     stage('build') {
                         sh 'du -sh ~/.ivy2'
@@ -38,7 +37,7 @@ podTemplate(
                     }
                 }
 
-            } catch(e) {
+            } catch (e) {
                 currentBuild.result = FAILURE
             }
             finally {
