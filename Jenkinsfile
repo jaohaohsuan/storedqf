@@ -35,6 +35,9 @@ podTemplate(
                         sh 'du -sh ~/.ivy2'
                         sh 'sbt compile'
                     }
+                    stage('unit test') {
+                        sh 'sbt test'
+                    }
                 }
 
             } catch (e) {
