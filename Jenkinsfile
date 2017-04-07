@@ -1,66 +1,51 @@
-#!groovy
-podTemplate(label: 'storedqf', containers: [
-        containerTemplate(name: 'jnlp', image: 'henryrao/jnlp-slave', args: '${computer.jnlpmac} ${computer.name}', alwaysPullImage: true),
-        containerTemplate(name: 'kubectl', image: 'henryrao/kubectl:1.5.2', ttyEnabled: true, command: 'cat'),
-        containerTemplate(name: 'sbt', image: 'henryrao/sbt:211', ttyEnabled: true, command: 'cat', alwaysPullImage: true),
-        containerTemplate(name: 'docker', image: 'docker:1.12.6', ttyEnabled: true, command: 'cat'),
-        containerTemplate(name: 'elastic', image: 'docker.elastic.co/elasticsearch/elasticsearch:5.2.2', ttyEnabled: true,
-                command: '/usr/share/elasticsearch/bin/elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Expack.security.enabled=false',
-                envVars: [
-                        containerEnvVar(key: 'ES_JAVA_OPTS', value: '-Des.cgroups.hierarchy.override=/')
-                ])
-],
+podTemplate(
+        label: 'stored2',
+        containers: [
+                containerTemplate(name: 'jnlp', image: 'henryrao/jnlp-slave', args: '${computer.jnlpmac} ${computer.name}', alwaysPullImage: true)
+        ],
         volumes: [
                 hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
-                hostPathVolume(mountPath: '/root/.kube/config', hostPath: '/root/.kube/config'),
                 persistentVolumeClaim(claimName: 'jenkins-ivy2', mountPath: '/home/jenkins/.ivy2', readOnly: false)
-        ],
-        workspaceVolume: emptyDirWorkspaceVolume(false)
-) {
-    node('storedqf') {
+        ]) {
+
+    node('stored2') {
         ansiColor('xterm') {
-            checkout scm
-            stage('compile') {
-                container('sbt') {
-                    sh 'sbt compile'
+            def esContaienr
+            try {
+                stage('prepare') {
+                    git(url: 'https://github.com/jaohaohsuan/storedqf.git', branch: 'master')
+                    esContaienr =
+                            docker.image('docker.elastic.co/elasticsearch/elasticsearch:5.3.0')
+                                    .run('-e "xpack.security.enabled=false" -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1"')
                 }
-            }
-            stage('unit test') {
-                container('sbt') {
-                    sh 'sbt test'
-                }
-            }
-            def imageSha
-            stage('build image') {
-                container('sbt') {
-                    sh 'sbt cpJarsForDocker'
-                }
-                dir('target/docker') {
-                    container('docker') {
-                        def mainClass = sh(returnStdout: true, script: 'cat mainClass').trim()
-                        imageSha = sh(returnStdout: true, script: "docker build --pull --build-arg mainClass=${mainClass} -q .").trim()[7..-1]
-                    }
-                }
-            }
-            stage('test') {
-                container('docker') {
-                    def containerId = sh(returnStdout: true, script: "docker run -d ${imageSha}")
-                    sleep 10
-                    sh "docker logs ${containerId}"
-                    sh "docker rm -f -v ${containerId}"
 
-                    timeout(time: 30, unit: 'SECONDS') {
-                        waitUntil {
-                            def r = sh script: "curl http://127.0.0.1:9200", returnStatus: true
-                            return (r == 0)
-                        }
+                docker.image('henryrao/sbt:2.11.8').inside("--net=container:${esContaienr.id}") {
+                    stage('environment check') {
+                        parallel elasticsearch: {
+                            timeout(time: 30, unit: 'SECONDS') {
+                                waitUntil {
+                                    def r = sh script: "curl -XGET http://127.0.0.1:9200?pretty", returnStatus: true
+                                    return (r == 0)
+                                }
+                            }
+                        }, setup: {
+                            echo 'POST index tmeplate'
+                        },failFast: true
+                    }
+                    stage('build') {
+                        sh 'du -sh ~/.ivy2'
+                        sh 'sbt compile'
                     }
                 }
+
+            } catch(e) {
+                currentBuild.result = FAILURE
             }
-            step([$class         : 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
-                  projectRulePath: 'jenkins-rule-logparser', useProjectRule: true])
+            finally {
+                esContaienr.stop()
+                step([$class         : 'LogParserPublisher', failBuildOnError: true, unstableOnWarning: true, showGraphs: true,
+                      projectRulePath: 'jenkins-rule-logparser', useProjectRule: true])
+            }
         }
-
     }
-
 }
