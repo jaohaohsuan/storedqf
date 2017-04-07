@@ -1,19 +1,24 @@
 package gd.inu.storedqf.text
+import eu.timepit.refined.auto._
 
-/**
-  * Created by henry on 4/7/17.
-  */
-import org.scalatest.{FunSpec, GivenWhenThen, Matchers}
+import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
 
-class WebVttHighlightingTest extends FunSpec with GivenWhenThen with Matchers {
+class WebVttHighlightingTest extends FeatureSpec with GivenWhenThen with Matchers {
 
-  describe("add css class to cue") {
+  scenario("add css class to cue") {
 
     Given("a cue of WebVtt highlighting result from elasitcsearch like <c>hello</c>")
+    val act = new ReplaceAllStartTag {
+      val newTag: Tag = "<c.agent0>"
+      val origin = "<c>hello</c><c>world</c>"
+    }
 
-    When("add css style 'agent0' to tag")
+    When("add css style 'agent0' to <c>")
+    act.matches should have size 2
 
     Then("tag should be <c.agent0>hello</c>")
+    act.result should be ("<c.agent0>hello</c><c.agent0>world</c>")
 
   }
+
 }

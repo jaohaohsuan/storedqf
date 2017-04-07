@@ -12,7 +12,8 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 import eu.timepit.refined.numeric._
 
-// (.+-\d+)\s([\s\S]+)\s$
+
+
 object VttParts {
   type  Cueid = String Refined MatchesRegex[W.`".+-[0-9]+$"`.T]
 
@@ -23,7 +24,7 @@ import VttParts._
 
 val sample = Cue("agent0-1224")
 assert(sample.id.value == "agent0-1224")
-val bad = Cue("a-1a224")
+//val bad = Cue("a-1a224")
 
 
 
