@@ -11,9 +11,9 @@ class WebVttHighlightingTest extends FunSpec with GivenWhenThen with Matchers {
 
     Given("a cue of WebVtt highlighting result from elasitcsearch like <c>hello</c>")
 
-    When("replace the tag with css style 'agent0'")
+    When("add css style 'agent0' to tag")
 
-    Then("should like this <c.agent0>hello</c>")
+    Then("tag should be <c.agent0>hello</c>")
 
   }
 }
