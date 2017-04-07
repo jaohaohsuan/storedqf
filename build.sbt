@@ -10,6 +10,7 @@ val root = (project in file(".")).settings(
   scalaVersion := "2.11.8",
   exportJars := true,
   libraryDependencies  ++= Seq(
+    refined,
     logback,
     nscalaTime, json4sJackson,
     akkaHttp,
