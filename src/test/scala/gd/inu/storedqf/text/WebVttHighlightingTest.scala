@@ -1,9 +1,10 @@
 package gd.inu.storedqf.text
 import eu.timepit.refined.auto._
+import gd.inu.storedqf.UnitSpec
+import gd.inu.storedqf.format.WebVtt.CueVal
+import gd.inu.storedqf.text.ReplaceAllStartTag._
 
-import org.scalatest.{FeatureSpec, GivenWhenThen, Matchers}
-
-class WebVttHighlightingTest extends FeatureSpec with GivenWhenThen with Matchers {
+class WebVttHighlightingTest extends UnitSpec {
 
   scenario("add css class to cue") {
 
