@@ -1,5 +1,5 @@
 
-import gd.inu.storedqf.format.WebVtt.CueVal
+import gd.inu.storedqf.format.WebVtt.CueString
 import gd.inu.storedqf.text.ReplaceAllStartTag
 
 val p1 = """(.+-\d+)\s+(\S+\s-->\s\S+)\s+([\s\S]*$)""".r
@@ -27,8 +27,13 @@ raw match {
   case _ => raw
 }
 
-val c1 = new CueVal("customer0-28476 那個 您送 撥您 的電話 三十 五 % 是 一樣 ")
-c1.id
+val c1 = new CueString("customer0-28476 那個 您送 撥您 的電話 三十 五 % 是 一樣 ")
+
+"""\w+-\d+\s*(?=[\s\S]*)""".r replaceAllIn("customer0-1988 00:00:01.988 --> 00:00:02.468\n<v R0>對</v>\n", m => {
+
+  s"${m.matched.trim}\n"
+
+})
 //info(s"\n\n${c1}")
 
 //new CueVal("customer0-28476 那個 您送 撥您 的電話 三十 五 % 是 一樣 ") with ReplaceAllStartTag {

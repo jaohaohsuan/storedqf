@@ -15,4 +15,12 @@ object Library {
   lazy val scalatest       = "org.scalatest" %% "scalatest" % "3.0.1" % "test"
   lazy val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test"
   lazy val scalacheck      = "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
+  lazy val cucumberRunner  = "com.waioeka.sbt" %% "cucumber-runner" % "0.0.8"
+
+  lazy val cucumber = Seq(
+    "info.cukes" % "cucumber-core" ,
+    "info.cukes" %% "cucumber-scala",
+    "info.cukes" % "cucumber-jvm",
+    "info.cukes" % "cucumber-junit"
+  ).map(_ % "1.2.5").map(_ % "test")
 }
