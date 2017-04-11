@@ -37,11 +37,12 @@ podTemplate(
                     }
                     stage('unit test') {
                         sh 'sbt test'
-                        step($class: 'CucumberTestResultArchiver', testResults: '/tmp/json')
+                        step([$class: 'CucumberTestResultArchiver', testResults: '/tmp/json'])
                     }
                 }
 
             } catch (e) {
+                echo "${e}"
                 currentBuild.result = FAILURE
             }
             finally {
