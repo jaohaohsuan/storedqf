@@ -37,6 +37,7 @@ podTemplate(
                     }
                     stage('unit test') {
                         sh 'sbt test'
+                        step($class: 'CucumberTestResultArchiver', testResults: '/tmp/json')
                     }
                 }
 
