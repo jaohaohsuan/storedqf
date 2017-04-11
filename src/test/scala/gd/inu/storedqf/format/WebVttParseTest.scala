@@ -1,7 +1,7 @@
 package gd.inu.storedqf.format
 
 import gd.inu.storedqf.UnitSpec
-import gd.inu.storedqf.format.WebVtt.CueProperties
+import gd.inu.storedqf.format.WebVtt._
 
 
 class WebVttParseTest extends UnitSpec with CueProperties {

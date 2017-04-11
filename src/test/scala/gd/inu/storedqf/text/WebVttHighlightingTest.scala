@@ -1,8 +1,7 @@
 package gd.inu.storedqf.text
 import eu.timepit.refined.auto._
 import gd.inu.storedqf.UnitSpec
-import gd.inu.storedqf.format.CueString
-import gd.inu.storedqf.format.WebVtt.CueVoiceMissing
+import gd.inu.storedqf.format._
 import gd.inu.storedqf.text.ReplaceAllStartTag._
 
 class WebVttHighlightingTest extends UnitSpec {
@@ -19,47 +18,30 @@ class WebVttHighlightingTest extends UnitSpec {
     act.matches should have size 2
 
     Then("tag should be <c.agent0>hello</c>")
-    act.result should be ("<c.agent0>hello</c><c.agent0>world</c>")
+    act.replace should be ("<c.agent0>hello</c><c.agent0>world</c>")
 
   }
 
   scenario("apply highlight result to cue") {
     Given("a highlight result: \"customer0-9400 欸 <c>您好</c> \"")
-    val marker = new CueMarker("customer0-9400 欸 <c>您好</c> ")
-    marker.newTag.value should be ("<c.customer0>")
-    marker.content should not equal("")
-    info(s"'${marker.cueid(marker.raw)}'")
+    val fragment = new HighlightFragment("customer0-9400 欸 <c>您好</c> ")
+    fragment.id should be ("customer0-9400")
+    fragment.origin should be ("欸 <c>您好</c> ")
+    fragment.newTag.value should be ("<c.customer0>")
 
     And("cue fragment")
     val cue = new CueString("""customer0-9400
                 |00:00:09.400 --> 00:00:10.008
                 |<v R0>欸 您好  </v>""".stripMargin)
 
-    When("marker replace cue")
-    val result = marker.replace(cue)
+
+    When("highlight cue")
+    import Highlighter._
+    val result = cue.highlight(fragment)
 
     Then("looks like")
     result.lines should have size 3
     result.lines.foreach { l => info(l) }
-
-
-  }
-
-  scenario("apply highlight result to cue without voice") {
-    Given("a highlight result: \"customer0-9400 欸 <c>您好</c> \"")
-    val marker = new CueMarker("customer0-9400 欸 <c>您好</c> ")
-    marker.newTag.value should be ("<c.customer0>")
-    marker.content should not equal("")
-
-    And("cue fragment")
-    val cue = new CueString("""customer0-9400
-                              |00:00:09.400 --> 00:00:10.008
-                              |欸 您好  """.stripMargin)
-
-    When("marker replace cue should throw CueVoiceMissing")
-    intercept[CueVoiceMissing] {
-      marker.replace(cue)
-    }
   }
 
 }

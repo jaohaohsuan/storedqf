@@ -20,7 +20,7 @@ class HighlightWebVttSteps extends ScalaDsl with EN with Matchers {
   When("""^a query highlight result:$"""){ (arg0:String) =>
     highlightResults = () => (parse(arg0) \\ classOf[JString]).map(new HighlightFragment(_))
   }
-  Then("""^webvtt output must append a css class on cue text$"""){ (arg0:String) =>
+  Then("""^webvtt output must append a css class on cue text "([^"]*)"$"""){ (arg0:String) =>
     import Highlighter._
 
     val highlightedVtt = highlightResults().foldLeft(vtt){ (ac, fragment) =>
