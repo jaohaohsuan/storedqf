@@ -12,29 +12,22 @@ import gd.inu.storedqf.format.{CueString, WebVtt}
 
 object Highlighter {
 
-  implicit class webVttHighlighter(src: WebVtt) extends Highlighter[WebVtt] {
-    val doc: String = src.raw
-  }
-  implicit class cueHighlighter(src: CueString) extends Highlighter[WebVtt] {
-    val doc: String = src.raw
-  }
+  implicit class webVttHighlighter(val src: WebVtt) extends Highlighter[WebVtt] {
 
+  }
+  implicit class cueHighlighter(val src: CueString) extends Highlighter[CueString] {
+
+  }
 }
 
 trait Highlighter[A] {
 
-  val doc: String
+  val src: A
 
-  def highlight(fragment: HighlightFragment): String = {
+  def substitute(fragment: HighlightFragment): String = {
     val searchTarget = new Regex(s"(?<=${fragment.id}\\n\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\s-->\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\n)(<\\w*\\s\\w*.)([\\s\\S]*?)(<\\/\\w*.)", "<", "txt", ">")
-    s"${searchTarget replaceAllIn (s"$doc", m => s"${m group "<"}${fragment.replace}${m group ">"}")}"
+    s"${searchTarget replaceAllIn (s"$src", m => s"${m group "<"}${fragment.replace}${m group ">"}")}"
   }
-
-}
-
-object ReplaceAllStartTag {
-
-  type Tag = String Refined MatchesRegex[W.`"<[A-Za-z0-9.]+>"`.T]
 
 }
 
@@ -44,6 +37,12 @@ class HighlightFragment(val fragment:String) extends CueProperties with ReplaceA
 
   val newTag: Tag = Refined.unsafeApply(s"<c.${role(fragment).value}>")
   val origin = """(?<=\w+-\d+\s+)[\s\S]*""".r.findFirstIn(fragment).getOrElse("")
+}
+
+object ReplaceAllStartTag {
+
+  type Tag = String Refined MatchesRegex[W.`"<[A-Za-z0-9.]+>"`.T]
+
 }
 
 trait ReplaceAllStartTag {

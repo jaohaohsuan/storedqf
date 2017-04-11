@@ -4,9 +4,9 @@ Feature: highlight webvtt
   我想要在听录音时快进到关键字出现的时间点
 
   Scenario: how we style webvtt highlight keywords
-    * convert a small piece of highlight result "agent0-30172 好 <c>麻煩您</c>" to HighlightFragment
-    * we can use CueProperties trait to get cueid "agent0-30172" which will help use to locate cue position in webvtt
-    * css class id "agent0" come from the prefix of cueid without dash & numbers
+    * first convert a small piece of highlight result "agent0-30172 好 <c>麻煩您</c>" to HighlightFragment
+    * then using "agent0" as a csss class which come from the prefix of cueid without dash & numbers
+    * we have to ensure cueid which must form as "agent0-30172" it will be used to locate cue position in webvtt substituting
     * to support css class level styling like this "<c.agent0>" we call replace method to get result "好 <c.agent0>麻煩您</c>"
 
   Scenario: 产生播放器可以读取的webvtt格式, 并且标记关键字位置

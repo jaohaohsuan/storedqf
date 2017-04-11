@@ -25,15 +25,11 @@ class CueString(val raw: String) extends AnyVal {
     })
   }
 
-  def styled = ("""<[\s\S]*\/+\w*>$""".r findFirstMatchIn raw).isDefined
-
   def text = lines.toSeq.drop(2).foldLeft("")(_ + _)
   def time = lines(1)
 
   def lines = s"${this}".split("""\n""")
 }
-
-class CueVoiceMissing extends Exception("<v ???>Hello world</v>")
 
 trait CueProperties extends Any {
   def cueid(raw: String): Cueid = Refined.unsafeApply("""\w+-\d+(?=[\s\S]*)""".r.findAllMatchIn(raw).foldLeft("")(_ + _))

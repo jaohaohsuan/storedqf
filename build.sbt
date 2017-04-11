@@ -38,4 +38,4 @@ val root = (project in file(".")).settings(
     Tests.Argument(framework,"--plugin","json:/tmp/json")
   ),
   CucumberPlugin.glue := "gd/inu/storedqf"
-).enablePlugins(CucumberPlugin)
+)
