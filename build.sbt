@@ -35,7 +35,7 @@ val root = (project in file(".")).settings(
     Tests.Argument(framework,"--glue",""),
     Tests.Argument(framework,"--plugin","pretty"),
     Tests.Argument(framework,"--plugin","html:/tmp/html"),
-    Tests.Argument(framework,"--plugin","json:/tmp/json")
+    Tests.Argument(framework,"--plugin","json:target/cucumber/storedqf.json")
   ),
   CucumberPlugin.glue := "gd/inu/storedqf"
 )
