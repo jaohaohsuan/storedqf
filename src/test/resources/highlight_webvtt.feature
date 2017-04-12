@@ -3,11 +3,10 @@ Feature: highlight webvtt
   作为质检人员
   我想要在听录音时快进到关键字出现的时间点
 
-  Scenario: how we style webvtt highlight keywords
-    * first convert a small piece of highlight result "agent0-30172 好 <c>麻煩您</c>" to HighlightFragment
-    * then using "agent0" as a csss class which come from the prefix of cueid without dash & numbers
-    * we have to ensure cueid which must form as "agent0-30172" it will be used to locate cue position in webvtt substituting
-    * to support css class level styling like this "<c.agent0>" we call replace method to get result "好 <c.agent0>麻煩您</c>"
+  Scenario: 高亮显示webvtt的关键字
+    Given 一个未标记的hightlight数据 "agent0-30172 好 <c>麻煩您</c>"
+    When cuid "agent0-30172" 的前缀 "agent0" 作为css样式的class时
+    Then highlight结果的内容必须添加css样式, 内容 "好 <c>麻煩您</c>" 必须改为 "好 <c.agent0>麻煩您</c>" 的格式
 
   Scenario: 产生播放器可以读取的webvtt格式, 并且标记关键字位置
     Given a raw of webvtt like fragment:

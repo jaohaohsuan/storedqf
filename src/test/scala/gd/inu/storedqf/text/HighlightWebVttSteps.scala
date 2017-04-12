@@ -30,19 +30,16 @@ class HighlightWebVttSteps extends ScalaDsl with EN with Matchers {
     highlightedVtt should include (arg0)
   }
 
-  Given("""^first convert a small piece of highlight result "([^"]*)" to HighlightFragment$"""){ (arg0:String) =>
+  Given("""^一个未标记的hightlight数据 "([^"]*)"$"""){ (arg0:String) =>
     highlightFragment = new HighlightFragment(arg0)
   }
-  Given("""^then using "([^"]*)" as a csss class which come from the prefix of cueid without dash & numbers$"""){ (arg0:String) =>
-    (highlightFragment: CueProperties).role(highlightFragment.fragment).value should be (arg0)
-  }
-
-  Given("""^we have to ensure cueid which must form as "([^"]*)" it will be used to locate cue position in webvtt substituting$"""){ (arg0:String) =>
+  When("""^cuid "([^"]*)" 的前缀 "([^"]*)" 作为css样式的class时$"""){ (arg0:String, arg1:String) =>
     (highlightFragment: CueProperties).cueid(highlightFragment.fragment).value should be (arg0)
+    (highlightFragment: CueProperties).role(highlightFragment.fragment).value should be (arg1)
   }
 
-  Given("""^to support css class level styling like this "([^"]*)" we call replace method to get result "([^"]*)"$"""){ (arg0:String, arg1:String) =>
-    highlightFragment.newTag.value should be (arg0)
+  Then("""^highlight结果的内容必须添加css样式, 内容 "([^"]*)" 必须改为 "([^"]*)" 的格式$"""){ (arg0:String, arg1:String) =>
+    highlightFragment.origin should be (arg0)
     val result = highlightFragment.replace
     result should be (arg1)
   }
