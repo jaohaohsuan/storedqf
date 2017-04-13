@@ -2,8 +2,6 @@ package gd.inu.storedqf.format
 
 import eu.timepit.refined.W
 import eu.timepit.refined.api.Refined
-
-import scala.util.matching.Regex
 import eu.timepit.refined.auto._
 import eu.timepit.refined.string.MatchesRegex
 import gd.inu.storedqf.format.WebVtt.{Cueid, Role}
