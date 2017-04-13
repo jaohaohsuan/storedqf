@@ -1,36 +1,38 @@
 package gd.inu.storedqf.text
 
-import cucumber.api.PendingException
+import cucumber.api._
 import cucumber.api.scala.{EN, ScalaDsl}
 import gd.inu.storedqf.format.{CueProperties, CueString, WebVtt}
 import org.json4s.JsonAST.JString
 import org.scalatest.Matchers
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import collection.JavaConverters._
 
 class HighlightWebVttSteps extends ScalaDsl with EN with Matchers {
 
-  private var highlightResults: () => Iterable[HighlightFragment] = () => List.empty
+  private var highlightResults = List.empty[HighlightFragment]
   private var vtt: String = ""
   private var highlightFragment: HighlightFragment = null
 
+  Given("""^对话内容$"""){ (arg0:DataTable) =>
+    vtt = arg0.asList(classOf[String]).asScala.map(new CueString(_)).foldLeft(""){_ ++ _.toString}
+  }
 
-  Given("""^a raw of webvtt like fragment:$"""){ (arg0:String) =>
-    vtt = (parse(arg0) \\ classOf[JString]).map(new CueString(_)).foldLeft(""){_ ++ _.toString}
+  When("""^用搜寻到的hightlight片段 "([^"]*)" 取代对话内容$"""){ (arg0:String) =>
+    highlightResults = new HighlightFragment(arg0) :: highlightResults
   }
-  When("""^a query highlight result:$"""){ (arg0:String) =>
-    highlightResults = () => (parse(arg0) \\ classOf[JString]).map(new HighlightFragment(_))
-  }
-  Then("""^webvtt output must append a css class on cue text "([^"]*)"$"""){ (arg0:String) =>
+
+  Then("""^输出符合 w3c webvtt 格式文件, 并找出关键字 "([^"]*)"$"""){ (arg1:String) =>
     import Highlighter._
 
-    val highlightedVtt = highlightResults().foldLeft(vtt){ (ac, fragment) =>
-      new WebVtt(vtt).substitute(fragment)
+    val highlightedVtt = highlightResults.foldLeft(vtt){ (ac, fragment) =>
+      new WebVtt(ac).substitute(fragment)
     }
-    highlightedVtt should include (arg0)
+    highlightedVtt should include (arg1)
   }
 
-  Given("""^一个未标记的hightlight数据 "([^"]*)"$"""){ (arg0:String) =>
+  Given("""^一个未标记的hightlight片段 "([^"]*)"$"""){ (arg0:String) =>
     highlightFragment = new HighlightFragment(arg0)
   }
   When("""^cuid "([^"]*)" 的前缀 "([^"]*)" 作为css样式的class时$"""){ (arg0:String, arg1:String) =>
