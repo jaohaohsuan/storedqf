@@ -23,7 +23,7 @@ class HighlightWebVttSteps extends ScalaDsl with EN with Matchers {
     highlightResults = new HighlightFragment(arg0) :: highlightResults
   }
 
-  Then("""^输出符合 w3c webvtt 格式文件, 并找出关键字 "([^"]*)"$"""){ (arg1:String) =>
+  Then("""^输出符合w(\d+)c webvtt格式文件, 并找出关键字 "([^"]*)"$"""){ (arg0: String, arg1:String) =>
     import Highlighter._
 
     val highlightedVtt = highlightResults.foldLeft(vtt){ (ac, fragment) =>

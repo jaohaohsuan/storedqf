@@ -15,9 +15,9 @@ Feature: highlight webvtt
       | customer0-33156 00:00:33.156 --> 00:00:34.004\n<v R0>欸 那 半年 內 </v>\n |
       | agent0-34180 00:00:34.180 --> 00:00:34.884\n<v R1>七 八 九  </v>\n |
       | customer0-35856 00:00:35.856 --> 00:00:36.616\n<v R0>七 二 九  </v>\n |
-    When 用搜寻到的hightlight片段 <highlightFragment> 取代对话内容
-    Then 输出符合 w3c webvtt 格式文件, 并找出关键字 <keywords>
+    When 用搜寻到的hightlight片段 "<highlightFragment>" 取代对话内容
+    Then 输出符合w3c webvtt格式文件, 并找出关键字 "<keywords>"
 
   Examples:
     | highlightFragment | keywords |
-    | "customer0-33156 欸 那 <c>半年</c> 內 " | "<c.customer0>半年</c>" |
+    | customer0-33156 欸 那 <c>半年</c> 內  | <c.customer0>半年</c> |
