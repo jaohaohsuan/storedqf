@@ -6,7 +6,7 @@ properties(
     ]
 )
 podTemplate(
-    label: 'stored2',
+    label: 'storedqf',
     containers: [
             containerTemplate(name: 'jnlp', image: 'henryrao/jnlp-slave', args: '${computer.jnlpmac} ${computer.name}', alwaysPullImage: true)
     ],
@@ -15,7 +15,7 @@ podTemplate(
             persistentVolumeClaim(claimName: 'jenkins-ivy2', mountPath: '/home/jenkins/.ivy2', readOnly: false)
     ]) {
 
-    node('stored2') {
+    node('storedqf') {
         ansiColor('xterm') {
             def esContaienr
             try {
@@ -35,7 +35,11 @@ podTemplate(
                                 }
                             }
                         }, setup: {
-                            echo 'POST index tmeplate'
+                            build job: 'inu-es-env/5.3',
+                                        parameters: [
+                                            string(name: 'ELASTICSEARCH_ADDR', value: containerIP(esContaienr.id)),
+                                            string(name: 'ELASTICSEARCH_PORT', value: 9200)
+                                        ]
                         }, failFast: true
                     }
                     stage('build') {
@@ -59,4 +63,8 @@ podTemplate(
             }
         }
     }
+}
+
+def containerIP(container) {
+    return sh(script: "docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${container.id}", returnStdout: true).trim()
 }
