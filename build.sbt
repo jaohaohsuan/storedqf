@@ -13,7 +13,7 @@ val root = (project in file(".")).settings(
     refined,
     logback,
     nscalaTime, json4sJackson,
-    akkaHttp,
+    akkaHttp, akkaHttpJson4s,
     akkaHttpTestkit,
     scalatest, scalacheck, cucumberRunner
   ) ++ cucumber,
@@ -38,4 +38,4 @@ val root = (project in file(".")).settings(
     Tests.Argument(framework,"--plugin","json:target/cucumber/storedqf.json")
   ),
   CucumberPlugin.glue := "gd/inu/storedqf"
-)
+).enablePlugins(RevolverPlugin)

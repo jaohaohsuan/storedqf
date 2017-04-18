@@ -18,11 +18,13 @@ podTemplate(
     node('storedqf') {
         ansiColor('xterm') {
             def esContaienr
+            def esIPAddr = ''
             try {
                 stage('prepare') {
                     checkout scm
                     esContaienr = docker.image('docker.elastic.co/elasticsearch/elasticsearch:5.3.0')
                                         .run('-e "xpack.security.enabled=false" -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1"')
+                    esIPAddr = containerIP(esContaienr)
                 }
 
                 docker.image('henryrao/sbt:2.11.8').inside("--net=container:${esContaienr.id}") {
@@ -35,11 +37,11 @@ podTemplate(
                                 }
                             }
                         }, setup: {
-                            build job: 'inu-es-env/5.3',
+                            build(job: 'inu-es-env/5.3',
                                         parameters: [
-                                            string(name: 'ELASTICSEARCH_ADDR', value: containerIP(esContaienr.id)),
-                                            string(name: 'ELASTICSEARCH_PORT', value: 9200)
-                                        ]
+                                            string(name: 'ELASTICSEARCH_ADDR', value: "${esIPAddr}"),
+                                            string(name: 'ELASTICSEARCH_PORT', value: '9200')
+                                        ])
                         }, failFast: true
                     }
                     stage('build') {

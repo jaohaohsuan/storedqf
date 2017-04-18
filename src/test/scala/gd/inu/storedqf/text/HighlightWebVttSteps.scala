@@ -45,6 +45,4 @@ class HighlightWebVttSteps extends ScalaDsl with EN with Matchers {
     val result = highlightFragment.replace
     result should be (arg1)
   }
-
-
 }

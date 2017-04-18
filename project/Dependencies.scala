@@ -1,7 +1,7 @@
 import sbt._
 
 object Version {
-  val akka     = "2.4.17"
+  val akka     = "2.5.0"
   val akkaHttp = "10.0.5"
 }
 
@@ -16,6 +16,8 @@ object Library {
   lazy val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test"
   lazy val scalacheck      = "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
   lazy val cucumberRunner  = "com.waioeka.sbt" %% "cucumber-runner" % "0.0.8"
+  lazy val akkaHttpJson4s  = "de.heikoseeberger" %% "akka-http-json4s" % "1.15.0"
+
 
   lazy val cucumber = Seq(
     "info.cukes" % "cucumber-core" ,
