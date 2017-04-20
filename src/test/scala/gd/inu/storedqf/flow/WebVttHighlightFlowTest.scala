@@ -15,8 +15,8 @@ import scala.concurrent.duration._
 /**
   * Created by henry on 4/20/17.
   */
-class HighlightFlowTest extends TestKit(ActorSystem("HighlightFlowSpec"))
-  with HighlightFlow[String, String, String, String]
+class WebVttHighlightFlowTest extends TestKit(ActorSystem("HighlightFlowSpec"))
+  with WebVttHighlightFlow[String, String, String, String]
   with ScalaDsl
   with EN
   with WordSpecLike
@@ -28,9 +28,8 @@ class HighlightFlowTest extends TestKit(ActorSystem("HighlightFlowSpec"))
 
   val query = Source.single("query")
   val doc = Source.single("doc")
-  val vtt = Source.single("vtt")
   val percolate = ZipWith((query: String, doc: String) => s"$query-$doc")
-  val highlightFlow = ZipWith((highlightFragment: String, doc: String) => s"$highlightFragment-$doc")
+  val assemble = ZipWith((highlightFragment: String, vttFieldOfDoc: String) => s"$highlightFragment+$vttFieldOfDoc")
 
   implicit val mat =  ActorMaterializer()
 
@@ -38,7 +37,7 @@ class HighlightFlowTest extends TestKit(ActorSystem("HighlightFlowSpec"))
     "follow the pipe" in {
       val probe = TestProbe()
       webvtt.runWith(Sink.head).pipeTo(probe.ref)
-      probe.expectMsg(3.seconds,"query-doc-vtt")
+      probe.expectMsg(3.seconds,"query-doc+doc")
     }
   }
 

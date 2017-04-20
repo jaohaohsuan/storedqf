@@ -1,4 +1,4 @@
-package gd.inu.storedqf.routing
+package gd.inu.storedqf.route
 
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.model.StatusCodes.OK
@@ -16,7 +16,7 @@ trait Probing {
     complete("Up and running.")
   }
 
-  val shutdown: Route = path("shutdown") {
+  val route: Route = path("shutdown") {
     onSuccess(graceShutdown) {
       complete(OK)
     }

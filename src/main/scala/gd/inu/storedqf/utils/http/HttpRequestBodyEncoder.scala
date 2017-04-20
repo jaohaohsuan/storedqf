@@ -2,7 +2,7 @@ package gd.inu.storedqf.utils.http
 
 import akka.http.scaladsl.model.MediaTypes.`application/json`
 import akka.http.scaladsl.model.{HttpEntity, HttpMethod, HttpRequest}
-import org.json4s.JsonAST.JValue
+import org.json4s.JsonAST.{JNothing, JValue}
 import org.json4s.jackson.JsonMethods.compact
 
 /**
@@ -23,12 +23,13 @@ object HttpRequestBodyEncoder {
     def encode(d: String): String = d
   }
 
-  implicit class httpMethodIfx(val verb: HttpMethod) {
-    def /[A](path: String)(body: => A)(implicit enc: HttpRequestBodyEncoder[A]) =
+  implicit class httpMethodIfx[A](val verb: HttpMethod) {
+
+    def /(path: String,body: => A)(implicit enc: HttpRequestBodyEncoder[A]): HttpRequest =
       HttpRequest(method = verb, uri = path, entity = HttpEntity(defaultMedia, enc.encode(body)))
 
-//    def `//`[A](path: String)(body: => String = { "" }): HttpRequest =
-//      HttpRequest(method = verb, uri = path, entity = HttpEntity(`application/json`, body))
+//    def /[A](path: String): HttpRequest =
+//      HttpRequest(method = verb, uri = path)
   }
 
 }

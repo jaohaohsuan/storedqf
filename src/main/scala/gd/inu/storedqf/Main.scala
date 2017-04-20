@@ -2,34 +2,35 @@ package gd.inu.storedqf
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.Http.ServerBinding
-import akka.http.scaladsl.server.Directives.{pathEndOrSingleSlash, _}
 import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
-import akka.http.scaladsl.model.StatusCodes._
+import gd.inu.storedqf.route.{ApiRouteService, Probing}
+import gd.inu.storedqf.utils.http.HttpRequestFlow
+
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 /**
   * Created by henry on 3/27/17.
   */
-object Main extends App with routing.Probing {
+object Main extends App {
 
     val config = ConfigFactory.load()
     val appName = "storedqf"
 
     implicit val system = ActorSystem(appName)
-    implicit val materializer = ActorMaterializer()
+    implicit val mat = ActorMaterializer()
     implicit val ec: ExecutionContext = system.dispatcher
+    implicit val endpoint = Http().outgoingConnection(config.getString("service.elasticsearch.addr"), port = config.getInt("service.elasticsearch.port"))
 
-    lazy val root: Route = `/` ~ shutdown
+    val service = new ApiRouteService()
 
-    val httpHandler =  Http().bindAndHandle(root, "0.0.0.0", config.getInt("http.port"))
+    val httpHandler =  Http().bindAndHandle(service.route, "0.0.0.0", config.getInt("http.port"))
 
     import utils.net.Connectivity._
 
-    val graceShutdown: Future[Unit] =
+    lazy val graceShutdown: Future[Unit] =
       for {
         (ip, port) <- httpHandler.flatMap(_.unbinding())
         _ <- system.terminate()
@@ -40,6 +41,7 @@ object Main extends App with routing.Probing {
     httpHandler.onSuccess { case binding =>
       println(s"${binding.ip} listen on port ${binding.port}")
     }
+
 
     sys.addShutdownHook {
       println("shutdown hook handled")
