@@ -14,6 +14,7 @@ object Library {
   lazy val refined         = "eu.timepit" %% "refined" % "0.8.0"
   lazy val scalatest       = "org.scalatest" %% "scalatest" % "3.0.1" % "test"
   lazy val akkaHttpTestkit = "com.typesafe.akka" %% "akka-http-testkit" % Version.akkaHttp % "test"
+  lazy val akkaStreamTestkit = "com.typesafe.akka" %% "akka-stream-testkit" % Version.akka % "test"
   lazy val scalacheck      = "org.scalacheck" %% "scalacheck" % "1.13.4" % "test"
   lazy val cucumberRunner  = "com.waioeka.sbt" %% "cucumber-runner" % "0.0.8"
   lazy val akkaHttpJson4s  = "de.heikoseeberger" %% "akka-http-json4s" % "1.15.0"

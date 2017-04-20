@@ -14,7 +14,7 @@ val root = (project in file(".")).settings(
     logback,
     nscalaTime, json4sJackson,
     akkaHttp, akkaHttpJson4s,
-    akkaHttpTestkit,
+    akkaHttpTestkit, akkaStreamTestkit,
     scalatest, scalacheck, cucumberRunner
   ) ++ cucumber,
   cpJarsForDocker := {

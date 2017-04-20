@@ -16,22 +16,22 @@ import scala.concurrent.duration.Duration
 /**
   * Created by henry on 4/17/17.
   */
-class HighlightTest extends TestKit(ActorSystem("testsystem"))
-  with ScalaDsl
-  with EN
-  with WordSpecLike
-  with MustMatchers
-  with StopSystemAfterAll {
-
-  val elasticsearch =  Http().outgoingConnection("localhost", 9200)
-
-  implicit val mat =  ActorMaterializer()
-
-  "query elasticsearch" must {
-    "stored-query must have field query" in {
-      val response = Await.result(Source.single(RequestBuilding.Get("/_cat/health")).via(elasticsearch).runWith(Sink.head), Duration.Inf)
-      info(s"$response")
-    }
-  }
-
-}
+//class HighlightTest extends TestKit(ActorSystem("testsystem"))
+//  with ScalaDsl
+//  with EN
+//  with WordSpecLike
+//  with MustMatchers
+//  with StopSystemAfterAll {
+//
+//  val elasticsearch =  Http().outgoingConnection("localhost", 9200)
+//
+//  implicit val mat =  ActorMaterializer()
+//
+//  "query elasticsearch" must {
+//    "stored-query must have field query" in {
+//      // val response = Await.result(Source.single(RequestBuilding.Get("/_cat/health")).via(elasticsearch).runWith(Sink.head), Duration.Inf)
+//      //info(s"$response")
+//    }
+//  }
+//
+//}
