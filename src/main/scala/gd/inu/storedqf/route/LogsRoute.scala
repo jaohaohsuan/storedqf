@@ -1,6 +1,6 @@
 package gd.inu.storedqf.route
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
@@ -37,7 +37,7 @@ import gd.inu.storedqf.service.StoredQueryService.HighlightLog
 //
 //case class Index private (regex: Regex, data: String)
 
-class LogsRoute(implicit system: ActorSystem) extends BaseRoute {
+class LogsRoute(storedqService: ActorRef)(implicit system: ActorSystem) extends BaseRoute {
 
   import gd.inu.storedqf.directives.ActorPerRequestLikeSpray._
 
@@ -45,7 +45,7 @@ class LogsRoute(implicit system: ActorSystem) extends BaseRoute {
     path("""^logs-\d{4}\.\d{2}\.\d{2}$""".r / Segment / Segment) { (index, typ, id) =>
       get {
         imperativelyComplete { ctx =>
-          system.actorOf(StoredQueryService.props("")) ! HighlightLog(id, ctx)
+          storedqService ! HighlightLog("temporary", s"/$index/$typ/$id", ctx)
         }
       }
     }

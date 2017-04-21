@@ -1,8 +1,7 @@
 package gd.inu.storedqf.route
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.server.Route
-
 import scala.concurrent.ExecutionContext
 
 /**
@@ -13,9 +12,10 @@ trait ApiRoute {
   implicit val actorSystem: ActorSystem
   implicit val ec: ExecutionContext = actorSystem.dispatcher
 
-  val logsRoute = new LogsRoute
+   val storedqService: ActorRef
+  val logsRoute = new LogsRoute(storedqService)
 
   def route: Route = logsRoute.route
 }
 
-class ApiRouteService()(implicit override val actorSystem: ActorSystem) extends ApiRoute
+class ApiRouteService(val storedqService: ActorRef)(implicit val actorSystem: ActorSystem) extends ApiRoute

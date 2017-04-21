@@ -6,7 +6,8 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
 import gd.inu.storedqf.route.{ApiRouteService, Probing}
-import gd.inu.storedqf.utils.http.HttpRequestFlow
+import gd.inu.storedqf.service.{Elasticsearch5xClient, StoredQueryService}
+import gd.inu.storedqf.service.ElasticsearchClientService.ElasticsearchClientFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -22,9 +23,11 @@ object Main extends App {
     implicit val system = ActorSystem(appName)
     implicit val mat = ActorMaterializer()
     implicit val ec: ExecutionContext = system.dispatcher
-    implicit val endpoint = Http().outgoingConnection(config.getString("service.elasticsearch.addr"), port = config.getInt("service.elasticsearch.port"))
+    implicit val esClientFactory: ElasticsearchClientFactory = () => new Elasticsearch5xClient()
 
-    val service = new ApiRouteService()
+    val storedq = system.actorOf(StoredQueryService.props(""), "storedq-service")
+    val service = new ApiRouteService(storedq)
+
 
     val httpHandler =  Http().bindAndHandle(service.route, "0.0.0.0", config.getInt("http.port"))
 
