@@ -5,6 +5,9 @@ import eu.timepit.refined.api.Refined
 import eu.timepit.refined.auto._
 import eu.timepit.refined.string.MatchesRegex
 import gd.inu.storedqf.format.WebVtt.{Cueid, Role}
+import gd.inu.storedqf.text.{HighlightFragment, Highlighter}
+import org.json4s.JsonAST
+import org.json4s.JsonAST.{JArray, JObject, JString, JValue}
 
 /**
   * Created by henry on 4/7/17.
@@ -13,6 +16,17 @@ object WebVtt {
 
   type Cueid = String Refined MatchesRegex[W.`"^[A-Za-z0-9_]+-[0-9]+"`.T]
   type Role = String Refined MatchesRegex[W.`"^[A-Za-z0-9_]+"`.T]
+
+  def fromJson(x: JValue) = {
+
+    // validation
+    (for(
+      JsonAST.JArray(arr) <- (x \ "_source" \ "vtt").toOption
+      if arr.nonEmpty
+    ) yield true).getOrElse(false)
+
+    (x \ "_source" \ "vtt" \\ classOf[JString]).map(new CueString(_)).foldLeft("WEBVTT\n"){ (ac, el) => ac ++ s"\n$el"}
+  }
 
 }
 
@@ -36,4 +50,18 @@ trait CueProperties extends Any {
 
 class WebVtt(val raw: String) extends AnyVal {
   override def toString: String = raw
+}
+
+class PercolateSearchResult(val json: JValue) {
+
+  import Highlighter._
+
+  private val highlightFragments = (json \\ classOf[JString]).map(new HighlightFragment(_))
+
+  def mergeWith(webvtt: String) = {
+    highlightFragments.foldLeft(webvtt){ (ac, fragment) =>
+      new WebVtt(ac).substituteWith(fragment)
+    }
+  }
+
 }

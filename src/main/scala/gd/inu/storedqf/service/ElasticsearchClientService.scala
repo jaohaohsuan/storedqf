@@ -21,9 +21,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait ElasticsearchClient {
 
-  val endpoint: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]]
-  def sendHttpReq(req: HttpRequest): Source[HttpResponse, NotUsed]
+  def send(req: HttpRequest): Source[HttpResponse, NotUsed]
   def response[T](returnCode: StatusCode = OK)(f: JValue => T)(implicit mat: Materializer): Flow[HttpResponse, T, NotUsed]
+  def flow[T](f: T => HttpRequest): Flow[T, HttpResponse, NotUsed]
 }
 
 object ElasticsearchClient {
@@ -34,11 +34,11 @@ object ElasticsearchClient {
     }
   }
 
-  implicit class httpRequest(req: HttpRequest) {
-    def viaES()(implicit client: ElasticsearchClient): Source[HttpResponse, NotUsed] = {
-      client.sendHttpReq(req)
-    }
-  }
+//  implicit class httpRequest(req: HttpRequest) {
+//    def viaES()(implicit client: ElasticsearchClient): Source[HttpResponse, NotUsed] = {
+//      client.sendHttpReq(req)
+//    }
+//  }
 }
 
 class Elasticsearch5xClient(implicit val system: ActorSystem) extends ElasticsearchClient
@@ -52,9 +52,9 @@ class Elasticsearch5xClient(implicit val system: ActorSystem) extends Elasticsea
     ConfigFactory.load().getConfig("service.elasticsearch")
   }
 
-  val endpoint: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] = Http().outgoingConnection(config.getString("addr"), config.getInt("port"))
+  private val endpoint: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] = Http().outgoingConnection(config.getString("addr"), config.getInt("port"))
 
-  def sendHttpReq(req: HttpRequest): Source[HttpResponse, NotUsed] = Source.single(req).via(endpoint)
+  def send(req: HttpRequest): Source[HttpResponse, NotUsed] = Source.single(req).via(endpoint)
 
   def response[T](returnCode: StatusCode = OK)(f: JValue => T)(implicit mat: Materializer): Flow[HttpResponse, T, NotUsed] = {
     Flow[HttpResponse].mapAsync(1) {
@@ -62,6 +62,10 @@ class Elasticsearch5xClient(implicit val system: ActorSystem) extends Elasticsea
         Unmarshal(entity).to[JValue].map(f)
       case resp => Future.failed(new Exception(s"unexpected: $resp"))
     }
+  }
+
+  def flow[T](f: T => HttpRequest): Flow[T, HttpResponse, NotUsed] = {
+    Flow[T].map(f).via(endpoint)
   }
 
 }

@@ -27,7 +27,7 @@ class HighlightWebVttSteps extends ScalaDsl with EN with Matchers {
     import Highlighter._
 
     val highlightedVtt = highlightResults.foldLeft(vtt){ (ac, fragment) =>
-      new WebVtt(ac).substitute(fragment)
+      new WebVtt(ac).substituteWith(fragment)
     }
     highlightedVtt should include (arg1)
   }

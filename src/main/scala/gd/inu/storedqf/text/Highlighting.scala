@@ -11,20 +11,15 @@ import eu.timepit.refined.auto._
 import gd.inu.storedqf.format.{CueString, WebVtt}
 
 object Highlighter {
-
-  implicit class webVttHighlighter(val src: WebVtt) extends Highlighter[WebVtt] {
-
-  }
-  implicit class cueHighlighter(val src: CueString) extends Highlighter[CueString] {
-
-  }
+  implicit class webVttHighlighter(val src: WebVtt) extends Highlighter[WebVtt] { }
+  implicit class cueHighlighter(val src: CueString) extends Highlighter[CueString] { }
 }
 
 trait Highlighter[A] {
 
   val src: A
 
-  def substitute(fragment: HighlightFragment): String = {
+  def substituteWith(fragment: HighlightFragment): String = {
     val searchTarget = new Regex(s"(?<=${fragment.id}\\n\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\s-->\\s\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\n)(<\\w*\\s\\w*.)([\\s\\S]*?)(<\\/\\w*.)", "<", "txt", ">")
     s"${searchTarget replaceAllIn (s"$src", m => s"${m group "<"}${fragment.replace}${m group ">"}")}"
   }

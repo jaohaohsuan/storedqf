@@ -37,7 +37,7 @@ class WebVttHighlightingTest extends UnitSpec {
 
     When("highlight cue")
     import Highlighter._
-    val result = cue.substitute(fragment)
+    val result = cue.substituteWith(fragment)
 
     Then("looks like")
     result.lines should have size 3

@@ -46,7 +46,7 @@ class LogsRoute(storedqService: ActorRef)(implicit system: ActorSystem) extends 
       get {
         parameters('id.? ) { storedqId =>
           imperativelyComplete { ctx =>
-            storedqService ! HighlightLog(storedqId.get, s"$index/$typ/$id", ctx)
+            storedqService ! HighlightLog(storedqId.get, s"$index/$typ/$id", typ, ctx)
           }
         }
       }
