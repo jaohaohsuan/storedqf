@@ -29,7 +29,7 @@ trait ElasticsearchClient {
 object ElasticsearchClient {
 
   implicit class statusCode(status: StatusCode) {
-    def respFlow[T](f: JValue => T)(implicit client: ElasticsearchClient, mat: Materializer) = {
+    def response[T](f: JValue => T)(implicit client: ElasticsearchClient, mat: Materializer) = {
       client.response[T](status)(f)
     }
   }

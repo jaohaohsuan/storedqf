@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, ZipWith}
 import gd.inu.storedqf.flow.WebVttHighlightFlow
-import gd.inu.storedqf.format.{PercolateSearchResult, WebVtt}
+import gd.inu.storedqf.format.{PercolateSearchResult, WebVtt, LogDocument}
 import gd.inu.storedqf.service.ElasticsearchClientService.ElasticsearchClientFactory
 import gd.inu.storedqf.service.StoredQueryService.HighlightLog
 import gd.inu.storedqf.utils.http.ImperativeRequestContext
@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
 object StoredQueryService {
 
   def props(implicit esClientFactory: ElasticsearchClientFactory) = Props(new StoredQueryService())
-  case class HighlightLog(storedqId: String,logPath: String, docType: String, ctx: ImperativeRequestContext)
+  case class HighlightLog(storedqId: String,logPath: String, ctx: ImperativeRequestContext)
 }
 
 class StoredQueryService()(implicit val esClientFactory: ElasticsearchClientFactory) extends Actor with Directives {
@@ -30,10 +30,10 @@ class StoredQueryService()(implicit val esClientFactory: ElasticsearchClientFact
   private implicit val esClient = esClientFactory()
 
   def receive: Receive = {
-    case cmd@HighlightLog(_, _, _, ctx) =>
+    case HighlightLog(storedqId, logPath, ctx) =>
       ctx.response {
         extractMaterializer { implicit mat =>
-          onComplete(procHighlighting(cmd)) {
+          onComplete(procHighlighting(storedqId, logPath)) {
             case Success(value) => complete(s"$value")
             case Failure(err)   => complete(InternalServerError, s"$err")
           }
@@ -41,12 +41,10 @@ class StoredQueryService()(implicit val esClientFactory: ElasticsearchClientFact
       }
   }
 
-  def procHighlighting(cmd: HighlightLog)(implicit mat: Materializer) = {
+  def procHighlighting(storedqId: String,logPath: String)(implicit mat: Materializer) = {
 
-    val HighlightLog(storedqId, logPath, docType , _) = cmd
-
-    val docSource = esClient.send(GET / logPath).via(OK.respFlow(identity))
-    val percolate = esClient.flow { doc: JValue =>
+    val docSource = esClient.send(GET / logPath).via(OK.response(new LogDocument(_)))
+    val percolate = esClient.flow { doc: LogDocument =>
       GET./("stored-query/_search", s"""{
                           "_source": false,
                           "query": {
@@ -61,8 +59,8 @@ class StoredQueryService()(implicit val esClientFactory: ElasticsearchClientFact
                                 {
                                   "percolate": {
                                     "field": "query",
-                                    "document_type": "$docType",
-                                    "document": ${compact(doc \ "_source")}
+                                    "document_type": "${doc._type}",
+                                    "document": ${compact(doc._source)}
                                   }
                                 }
                               ]
@@ -78,9 +76,9 @@ class StoredQueryService()(implicit val esClientFactory: ElasticsearchClientFact
                               }
                           }
                         }""")
-    }.via(OK.respFlow(_ \\ "highlight" ))
+    }.via(OK.response(_ \\ "highlight"))
 
-    val assemble = ZipWith((hits: JValue, doc: JValue) => new PercolateSearchResult(hits).mergeWith(WebVtt.fromJson(doc)))
+    val assemble = ZipWith((hits: JValue, log: LogDocument) => new PercolateSearchResult(hits).mergeWith(log.vtt))
 
     WebVttHighlightFlow.create(docSource, percolate, assemble).runWith(Sink.head)
   }

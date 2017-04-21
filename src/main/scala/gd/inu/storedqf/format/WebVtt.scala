@@ -7,7 +7,7 @@ import eu.timepit.refined.string.MatchesRegex
 import gd.inu.storedqf.format.WebVtt.{Cueid, Role}
 import gd.inu.storedqf.text.{HighlightFragment, Highlighter}
 import org.json4s.JsonAST
-import org.json4s.JsonAST.{JArray, JObject, JString, JValue}
+import org.json4s.JsonAST.{JField, _}
 
 /**
   * Created by henry on 4/7/17.
@@ -16,17 +16,6 @@ object WebVtt {
 
   type Cueid = String Refined MatchesRegex[W.`"^[A-Za-z0-9_]+-[0-9]+"`.T]
   type Role = String Refined MatchesRegex[W.`"^[A-Za-z0-9_]+"`.T]
-
-  def fromJson(x: JValue) = {
-
-    // validation
-    (for(
-      JsonAST.JArray(arr) <- (x \ "_source" \ "vtt").toOption
-      if arr.nonEmpty
-    ) yield true).getOrElse(false)
-
-    (x \ "_source" \ "vtt" \\ classOf[JString]).map(new CueString(_)).foldLeft("WEBVTT\n"){ (ac, el) => ac ++ s"\n$el"}
-  }
 
 }
 
@@ -63,5 +52,24 @@ class PercolateSearchResult(val json: JValue) {
       new WebVtt(ac).substituteWith(fragment)
     }
   }
+
+}
+
+class LogDocument(json: JValue) {
+
+  //import org.json4s._
+  //import org.json4s.jackson.JsonMethods._
+
+  val _source = json \ "_source"
+
+  lazy val _type = {
+    (for (
+      JString(s) <- (json \ "_type").toOption
+    ) yield s) getOrElse ""
+  }
+
+  // validation
+
+  lazy val vtt = (json \ "_source" \ "vtt" \\ classOf[JString]).map(new CueString(_)).foldLeft("WEBVTT\n"){ (ac, el) => ac ++ s"\n$el"}
 
 }
