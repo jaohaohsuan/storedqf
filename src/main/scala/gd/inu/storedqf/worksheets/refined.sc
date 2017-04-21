@@ -33,7 +33,7 @@ import VttParts._
 val sample = Cue("agent0-1224")
 //assert(sample.id.value == "agent0-1224")
 //val bad = Cue("a-1a224")
-
+val uri: String Refined Uri = "23391"
 
 val s: String Refined And[NonEmpty, Forall[Not[Whitespace]]] = "ab1"
 

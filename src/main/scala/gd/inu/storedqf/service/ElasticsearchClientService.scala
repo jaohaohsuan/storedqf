@@ -20,6 +20,8 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 
 trait ElasticsearchClient {
+
+  val endpoint: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]]
   def sendHttpReq(req: HttpRequest): Source[HttpResponse, NotUsed]
   def response[T](returnCode: StatusCode = OK)(f: JValue => T)(implicit mat: Materializer): Flow[HttpResponse, T, NotUsed]
 }
@@ -27,13 +29,13 @@ trait ElasticsearchClient {
 object ElasticsearchClient {
 
   implicit class statusCode(status: StatusCode) {
-    def flow[T](f: JValue => T)(implicit client: ElasticsearchClient, mat: Materializer) = {
+    def respFlow[T](f: JValue => T)(implicit client: ElasticsearchClient, mat: Materializer) = {
       client.response[T](status)(f)
     }
   }
 
   implicit class httpRequest(req: HttpRequest) {
-    def send()(implicit client: ElasticsearchClient): Source[HttpResponse, NotUsed] = {
+    def viaES()(implicit client: ElasticsearchClient): Source[HttpResponse, NotUsed] = {
       client.sendHttpReq(req)
     }
   }
@@ -50,7 +52,7 @@ class Elasticsearch5xClient(implicit val system: ActorSystem) extends Elasticsea
     ConfigFactory.load().getConfig("service.elasticsearch")
   }
 
-  private val endpoint = Http().outgoingConnection(config.getString("addr"), config.getInt("port"))
+  val endpoint: Flow[HttpRequest, HttpResponse, Future[Http.OutgoingConnection]] = Http().outgoingConnection(config.getString("addr"), config.getInt("port"))
 
   def sendHttpReq(req: HttpRequest): Source[HttpResponse, NotUsed] = Source.single(req).via(endpoint)
 
@@ -58,9 +60,10 @@ class Elasticsearch5xClient(implicit val system: ActorSystem) extends Elasticsea
     Flow[HttpResponse].mapAsync(1) {
       case HttpResponse(status, _, entity, _) if returnCode == status =>
         Unmarshal(entity).to[JValue].map(f)
-      case _ => Future.failed(new Exception("unexpected"))
+      case resp => Future.failed(new Exception(s"unexpected: $resp"))
     }
   }
+
 }
 
 object ElasticsearchClientService {

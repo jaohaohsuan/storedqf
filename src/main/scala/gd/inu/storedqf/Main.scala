@@ -25,7 +25,7 @@ object Main extends App {
     implicit val ec: ExecutionContext = system.dispatcher
     implicit val esClientFactory: ElasticsearchClientFactory = () => new Elasticsearch5xClient()
 
-    val storedq = system.actorOf(StoredQueryService.props(""), "storedq-service")
+    val storedq = system.actorOf(StoredQueryService.props, "storedq-service")
     val service = new ApiRouteService(storedq)
 
 

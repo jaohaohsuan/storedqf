@@ -44,8 +44,10 @@ class LogsRoute(storedqService: ActorRef)(implicit system: ActorSystem) extends 
   def doRoute(implicit mat: Materializer): Route = {
     path("""^logs-\d{4}\.\d{2}\.\d{2}$""".r / Segment / Segment) { (index, typ, id) =>
       get {
-        imperativelyComplete { ctx =>
-          storedqService ! HighlightLog("temporary", s"/$index/$typ/$id", ctx)
+        parameters('id.? ) { storedqId =>
+          imperativelyComplete { ctx =>
+            storedqService ! HighlightLog(storedqId.get, s"$index/$typ/$id", ctx)
+          }
         }
       }
     }
